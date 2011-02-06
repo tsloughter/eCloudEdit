@@ -24,7 +24,8 @@ content_types_provided(ReqData, Ctx) ->
 
 process_post(ReqData, Ctx) ->
     [{JsonDoc, _}] = mochiweb_util:parse_qs(wrq:req_body(ReqData)),
-    ece_db:create(JsonDoc),
+    {struct, Doc} = mochijson2:decode(JsonDoc),
+    ece_db:create({Doc}),
     {true, ReqData, Ctx}.
 
 to_json(ReqData, Ctx) ->
