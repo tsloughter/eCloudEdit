@@ -1,0 +1,3 @@
+{["documents", id], ece_resource_documents, []}.
+{["documents"], ece_resource_documents, []}.
+{['*'], ece_resource_static, []}.

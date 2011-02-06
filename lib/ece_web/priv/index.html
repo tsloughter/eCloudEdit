@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <title>eCloudEdit</title>
+
+    <link href="/stylesheets/reset.css" media="all" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/application.css" media="all" rel="stylesheet" type="text/css" />
+    <script src="/javascripts/jquery-1.4.4.min.js" type="text/javascript"></script>
+    <script src="/javascripts/json2.js" type="text/javascript"></script>
+    <script src="/javascripts/underscore.js" type="text/javascript"></script>
+    <script src="/javascripts/backbone.js" type="text/javascript"></script>
+    <script src="/javascripts/application.js" type="text/javascript"></script>
+    <script src="/javascripts/jquery.dotimeout.js" type="text/javascript"></script>
+    <script src="/javascripts/controllers/documents.js" type="text/javascript"></script>
+    <script src="/javascripts/models/document.js" type="text/javascript"></script>
+    <script src="/javascripts/views/edit.js" type="text/javascript"></script>
+    <script src="/javascripts/views/index.js" type="text/javascript"></script>
+    <script src="/javascripts/views/notice.js" type="text/javascript"></script>
+  </head>
+
+  <body>
+
+    <h1><a href="#">eCloudEdit</a></h1>
+    <h2>A Backbone.js Webmachine Example by Tristan Sloughter, based
+      on CloudEdit by James Yu</h2>
+
+    <div id="notice"></div>
+    <div id="app"></div>
+
+    <script type="text/javascript">
+      $(function() {
+      App.init();
+      });
+    </script>
+
+  </body>
+</html>
