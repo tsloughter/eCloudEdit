@@ -43,10 +43,14 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
 
-    %AChild = {'AName', {'AModule', start_link, []},
-    %          Restart, Shutdown, Type, ['AModule']},
+    {ok, Server} = application:get_env(server),
+    {ok, Port} = application:get_env(port),
+    {ok, DB} = application:get_env(database),
 
-    {ok, {SupFlags, []}}.
+    AChild = {ece_db, {ece_db, start_link, [Server, Port, DB]},
+              Restart, Shutdown, Type, [ece_db]},
+
+    {ok, {SupFlags, [AChild]}}.
 
 %%%===================================================================
 %%% Internal functions
