@@ -1,0 +1,24 @@
+// -*- mode: doc -*-
+
+README
+======
+
+Deps
+----
+
+couchbeam
+webmachine
+
+Configure
+---------
+
+Modify port and where couchdb is in config/sys.config.
+
+Install and Run
+---------------
+
+$ sinan dist
+
+$ faxien ir
+
+$ eCloudEdit
