@@ -27,49 +27,48 @@ content_types_provided(ReqData, Ctx) ->
     {[{webmachine_util:guess_mime(Path), provide_content}], ReqData, Ctx}.
 
 provide_content(ReqData, Context) ->
-  case maybe_fetch_object(Context, wrq:disp_path(ReqData)) of
-    {true, NewContext} ->
-      Body = NewContext#context.response_body,
-      {Body, ReqData, Context};
-    {false, NewContext} ->
-      {error, ReqData, NewContext}
-  end.
+    case maybe_fetch_object(Context, wrq:disp_path(ReqData)) of
+        {true, NewContext} ->
+            Body = NewContext#context.response_body,
+            {Body, ReqData, Context};
+        {false, NewContext} ->
+            {error, ReqData, NewContext}
+    end.
 
-% ------------------ PRIVATE ------------------------
 maybe_fetch_object(Context, Path) ->
-  % if returns {true, NewContext} then NewContext has response_body
-  case Context#context.response_body of
-    undefined ->
-      case file_exists(Context, Path) of
-        {true, FullPath} ->
-          {ok, Value} = file:read_file(FullPath),
-          {true, Context#context{response_body=Value}};
-        false ->
-          {false, Context}
-      end;
-    _Body ->
-      {true, Context}
-  end.
+    % if returns {true, NewContext} then NewContext has response_body
+    case Context#context.response_body of
+        undefined ->
+            case file_exists(Context, Path) of
+                {true, FullPath} ->
+                    {ok, Value} = file:read_file(FullPath),
+                    {true, Context#context{response_body=Value}};
+                false ->
+                    {false, Context}
+            end;
+        _Body ->
+            {true, Context}
+    end.
 
 file_exists(Context, Path) ->
-  FPath = get_full_path(Context, Path),
-  case filelib:is_regular(filename:absname(FPath)) of
-    true ->
-      {true, FPath};
-    false ->
-      false
-  end.
+    FPath = get_full_path(Context, Path),
+    case filelib:is_regular(filename:absname(FPath)) of
+        true ->
+            {true, FPath};
+        false ->
+            false
+    end.
 
 get_full_path(Context, Path) ->
-  Root = Context#context.docroot,
-  case mochiweb_util:safe_relative_path(Path) of
-    undefined -> undefined;
-    RelPath ->
-      FullPath = filename:join([Root, RelPath]),
-      case filelib:is_dir(FullPath) of
-        true ->
-          filename:join([FullPath, "index.html"]);
-        false ->
-          FullPath
-      end
-  end.
+    Root = Context#context.docroot,
+    case mochiweb_util:safe_relative_path(Path) of
+        undefined -> undefined;
+        RelPath ->
+            FullPath = filename:join([Root, RelPath]),
+            case filelib:is_dir(FullPath) of
+                true ->
+                    filename:join([FullPath, "index.html"]);
+                false ->
+                    FullPath
+            end
+    end.
