@@ -44,8 +44,8 @@ find(ID) ->
 create(Doc) ->
     gen_server:call(?SERVER, {create, Doc}).
 
-update(_ID, _JsonDoc) ->
-    ok.
+update(ID, JsonDoc) ->
+    gen_server:call(?SERVER, {update, ID, JsonDoc}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -70,7 +70,7 @@ handle_call(all, _From, #state{db=DB}=State) ->
                              {<<"value">>, {Value}} = lists:keyfind(<<"value">>, 1, Row),
                              Value
                      end, Rows),
-    io:format("Docs ~p~n", [Docs]),
+
     {reply, mochijson2:encode(Docs), State};
 handle_call({find, ID}, _From, #state{db=DB}=State) ->
     {ok, View} = couchbeam:view(DB, {"all", "find"}, [{key, list_to_binary(ID)}]),
@@ -81,11 +81,18 @@ handle_call({find, ID}, _From, #state{db=DB}=State) ->
       {<<"rows">>, [{Row}]}]} = Results,
 
     {<<"value">>, {Doc}} = lists:keyfind(<<"value">>, 1, Row),
-    io:format("Docs ~p~n", [Doc]),
+
     {reply, mochijson2:encode(Doc), State};
 handle_call({create, Doc}, _From, #state{db=DB}=State) ->
     {ok, _Doc1} = couchbeam:save_doc(DB, Doc),
-    {reply, ok, State}.
+    {reply, ok, State};
+handle_call({update, ID, NewDoc}, _From, #state{db=DB}=State) ->
+    IDBinary = list_to_binary(ID),
+    {ok, Doc} = couchbeam:open_doc(DB, IDBinary),
+    NewDoc2 = couchbeam_doc:set_value(<<"_id">>, IDBinary, {NewDoc}),
+    NewDoc3 = couchbeam_doc:set_value(<<"_rev">>, couchbeam_doc:get_rev(Doc), NewDoc2),
+    {ok, {Doc1}} = couchbeam:save_doc(DB, NewDoc3),
+    {reply, mochijson2:encode(Doc1), State}.
 
 %% @private
 handle_cast(_Msg, State) ->

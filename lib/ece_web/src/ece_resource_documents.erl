@@ -4,6 +4,8 @@
          allowed_methods/2,
          resource_exists/2,
          content_types_provided/2,
+         content_types_accepted/2,
+         from_json/2,
          to_json/2,
          process_post/2]).
 
@@ -14,10 +16,13 @@ init([]) ->
     {ok, undefined}.
 
 allowed_methods(ReqData, Ctx) ->
-    {['HEAD', 'GET', 'POST'], ReqData, Ctx}.
+    {['HEAD', 'GET', 'POST', 'PUT'], ReqData, Ctx}.
 
 resource_exists(ReqData, Ctx) ->
     {true, ReqData, Ctx}.
+
+content_types_accepted(ReqData, Ctx) ->
+    {[{"application/json", from_json}], ReqData, Ctx}.
 
 content_types_provided(ReqData, Ctx) ->
     {[{"application/json", to_json}], ReqData, Ctx}.
@@ -38,3 +43,13 @@ to_json(ReqData, Ctx) ->
             {JsonDoc, ReqData, Ctx}
     end.
 
+from_json(ReqData, Ctx) ->
+    case wrq:path_info(id, ReqData) of
+        undefined ->
+            {false, ReqData, Ctx};
+        ID ->
+            JsonDoc = wrq:req_body(ReqData),
+            {struct, Doc} = mochijson2:decode(JsonDoc),
+            ece_db:update(ID, Doc),
+            {true, ReqData, Ctx}
+    end.
