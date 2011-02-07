@@ -84,8 +84,10 @@ handle_call({find, ID}, _From, #state{db=DB}=State) ->
 
     {reply, mochijson2:encode(Doc), State};
 handle_call({create, Doc}, _From, #state{db=DB}=State) ->
-    {ok, _Doc1} = couchbeam:save_doc(DB, Doc),
-    {reply, ok, State};
+    {ok, Doc1} = couchbeam:save_doc(DB, Doc),
+    {NewDoc} = couchbeam_doc:set_value(<<"id">>, couchbeam_doc:get_id(Doc1), Doc1),
+
+    {reply, mochijson2:encode(NewDoc), State};
 handle_call({update, ID, NewDoc}, _From, #state{db=DB}=State) ->
     IDBinary = list_to_binary(ID),
     {ok, Doc} = couchbeam:open_doc(DB, IDBinary),

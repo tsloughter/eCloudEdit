@@ -30,8 +30,9 @@ content_types_provided(ReqData, Ctx) ->
 process_post(ReqData, Ctx) ->
     [{JsonDoc, _}] = mochiweb_util:parse_qs(wrq:req_body(ReqData)),
     {struct, Doc} = mochijson2:decode(JsonDoc),
-    ece_db:create({Doc}),
-    {true, ReqData, Ctx}.
+    NewDoc = ece_db:create({Doc}),
+    ReqData2 = wrq:set_resp_body(NewDoc, ReqData),
+    {true, ReqData2, Ctx}.
 
 to_json(ReqData, Ctx) ->
     case wrq:path_info(id, ReqData) of
@@ -50,6 +51,7 @@ from_json(ReqData, Ctx) ->
         ID ->
             JsonDoc = wrq:req_body(ReqData),
             {struct, Doc} = mochijson2:decode(JsonDoc),
-            ece_db:update(ID, Doc),
-            {true, ReqData, Ctx}
+            NewDoc = ece_db:update(ID, Doc),
+            ReqData2 = wrq:set_resp_body(NewDoc, ReqData),
+            {true, ReqData2, Ctx}
     end.
