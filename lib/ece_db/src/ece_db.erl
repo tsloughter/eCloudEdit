@@ -55,38 +55,18 @@ update(ID, JsonDoc) ->
 init([Server, Port, DB]) ->
     CouchServer = couchbeam:server_connection(Server, Port, "", []),
     {ok, CouchDB} = couchbeam:open_db(CouchServer, DB),
-
     {ok, #state{db=CouchDB}}.
 
 %% @private
 handle_call(all, _From, #state{db=DB}=State) ->
-    {ok, AllDocs} = couchbeam:view(DB, {"all", "find"}, []),
-    {ok, Results} = couchbeam_view:fetch(AllDocs),
-    {[{<<"total_rows">>, _Total},
-      {<<"offset">>, _Offset},
-      {<<"rows">>, Rows}]} = Results,
-
-    Docs = lists:map(fun({Row}) ->
-                             {<<"value">>, {Value}} = lists:keyfind(<<"value">>, 1, Row),
-                             Value
-                     end, Rows),
-
+    Docs = get_docs(DB, []),
     {reply, mochijson2:encode(Docs), State};
 handle_call({find, ID}, _From, #state{db=DB}=State) ->
-    {ok, View} = couchbeam:view(DB, {"all", "find"}, [{key, list_to_binary(ID)}]),
-    {ok, Results} = couchbeam_view:fetch(View),
-
-    {[{<<"total_rows">>, _Total},
-      {<<"offset">>, _Offset},
-      {<<"rows">>, [{Row}]}]} = Results,
-
-    {<<"value">>, {Doc}} = lists:keyfind(<<"value">>, 1, Row),
-
+    [Doc] = get_docs(DB, [{key, list_to_binary(ID)}]),
     {reply, mochijson2:encode(Doc), State};
 handle_call({create, Doc}, _From, #state{db=DB}=State) ->
     {ok, Doc1} = couchbeam:save_doc(DB, Doc),
     {NewDoc} = couchbeam_doc:set_value(<<"id">>, couchbeam_doc:get_id(Doc1), Doc1),
-
     {reply, mochijson2:encode(NewDoc), State};
 handle_call({update, ID, NewDoc}, _From, #state{db=DB}=State) ->
     IDBinary = list_to_binary(ID),
@@ -115,3 +95,17 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+get_docs(DB, Options) ->
+    {ok, AllDocs} = couchbeam:view(DB, {"all", "find"}, Options),
+    {ok, Results} = couchbeam_view:fetch(AllDocs),
+
+    {[{<<"total_rows">>, _Total},
+      {<<"offset">>, _Offset},
+      {<<"rows">>, Rows}]} = Results,
+
+    lists:map(fun({Row}) ->
+                      {<<"value">>, {Value}} = lists:keyfind(<<"value">>, 1, Row),
+                      Value
+              end, Rows).
+
