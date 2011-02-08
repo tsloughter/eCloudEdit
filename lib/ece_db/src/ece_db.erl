@@ -10,10 +10,10 @@
 
 %% API
 -export([start_link/3,
-         all/0,
-         find/1,
-         create/1,
-         update/2]).
+         all/1,
+         find/2,
+         create/2,
+         update/3]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -33,19 +33,19 @@
 %%%===================================================================
 
 start_link(Server, Port, DB) ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [Server, Port, DB], []).
+    gen_server:start_link(?MODULE, [Server, Port, DB], []).
 
-all() ->
-    gen_server:call(?SERVER, all).
+all(PID) ->
+    gen_server:call(PID, all).
 
-find(ID) ->
-    gen_server:call(?SERVER, {find, ID}).
+find(PID, ID) ->
+    gen_server:call(PID, {find, ID}).
 
-create(Doc) ->
-    gen_server:call(?SERVER, {create, Doc}).
+create(PID, Doc) ->
+    gen_server:call(PID, {create, Doc}).
 
-update(ID, JsonDoc) ->
-    gen_server:call(?SERVER, {update, ID, JsonDoc}).
+update(PID, ID, JsonDoc) ->
+    gen_server:call(PID, {update, ID, JsonDoc}).
 
 %%%===================================================================
 %%% gen_server callbacks

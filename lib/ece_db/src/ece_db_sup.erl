@@ -9,7 +9,8 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0,
+         start_child/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -24,6 +25,9 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
+start_child() ->
+    supervisor:start_child(?SERVER, []).
+
 %%%===================================================================
 %%% Supervisor callbacks
 %%%===================================================================
@@ -33,13 +37,13 @@ start_link() ->
 -spec init(list()) -> {ok, {SupFlags::any(), [ChildSpec::any()]}} |
                        ignore | {error, Reason::any()}.
 init([]) ->
-    RestartStrategy = one_for_one,
-    MaxRestarts = 1000,
-    MaxSecondsBetweenRestarts = 3600,
+    RestartStrategy = simple_one_for_one,
+    MaxRestarts = 0,
+    MaxSecondsBetweenRestarts = 1,
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
-    Restart = permanent,
+    Restart = transient,
     Shutdown = 2000,
     Type = worker,
 

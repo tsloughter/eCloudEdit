@@ -12,8 +12,11 @@
 -include_lib("webmachine/include/webmachine.hrl").
 -include_lib("kernel/include/file.hrl").
 
+-record(ctx, {db}).
+
 init([]) ->
-    {ok, undefined}.
+    {ok, PID} = ece_db_sup:start_child(),
+    {ok, #ctx{db=PID}}.
 
 allowed_methods(ReqData, Ctx) ->
     {['HEAD', 'GET', 'POST', 'PUT'], ReqData, Ctx}.
@@ -30,17 +33,17 @@ content_types_provided(ReqData, Ctx) ->
 process_post(ReqData, Ctx) ->
     [{JsonDoc, _}] = mochiweb_util:parse_qs(wrq:req_body(ReqData)),
     {struct, Doc} = mochijson2:decode(JsonDoc),
-    NewDoc = ece_db:create({Doc}),
+    NewDoc = ece_db:create(Ctx#ctx.db, {Doc}),
     ReqData2 = wrq:set_resp_body(NewDoc, ReqData),
     {true, ReqData2, Ctx}.
 
 to_json(ReqData, Ctx) ->
     case wrq:path_info(id, ReqData) of
         undefined ->
-            All = ece_db:all(),
+            All = ece_db:all(Ctx#ctx.db),
             {All, ReqData, Ctx};
         ID ->
-            JsonDoc = ece_db:find(ID),
+            JsonDoc = ece_db:find(Ctx#ctx.db, ID),
             {JsonDoc, ReqData, Ctx}
     end.
 
@@ -51,7 +54,7 @@ from_json(ReqData, Ctx) ->
         ID ->
             JsonDoc = wrq:req_body(ReqData),
             {struct, Doc} = mochijson2:decode(JsonDoc),
-            NewDoc = ece_db:update(ID, Doc),
+            NewDoc = ece_db:update(Ctx#ctx.db, ID, Doc),
             ReqData2 = wrq:set_resp_body(NewDoc, ReqData),
             {true, ReqData2, Ctx}
     end.
