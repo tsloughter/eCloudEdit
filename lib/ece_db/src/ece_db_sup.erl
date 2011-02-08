@@ -10,7 +10,8 @@
 
 %% API
 -export([start_link/0,
-         start_child/0]).
+         start_child/0,
+         terminate_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -27,6 +28,9 @@ start_link() ->
 
 start_child() ->
     supervisor:start_child(?SERVER, []).
+
+terminate_child(PID) ->
+    supervisor:terminate_child(?SERVER, PID).
 
 %%%===================================================================
 %%% Supervisor callbacks
