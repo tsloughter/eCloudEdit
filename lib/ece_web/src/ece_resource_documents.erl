@@ -10,7 +10,6 @@
          process_post/2]).
 
 -include_lib("webmachine/include/webmachine.hrl").
--include_lib("kernel/include/file.hrl").
 
 -record(ctx, {db}).
 
