@@ -59,7 +59,7 @@ init([Server, Port, DB]) ->
 
 %% @private
 handle_call(all, _From, #state{db=DB}=State) ->
-    Docs = get_docs(DB, []),
+    Docs = get_docs(DB, [{descending, true}]),
     {reply, mochijson2:encode(Docs), State};
 handle_call({find, ID}, _From, #state{db=DB}=State) ->
     [Doc] = get_docs(DB, [{key, list_to_binary(ID)}]),
