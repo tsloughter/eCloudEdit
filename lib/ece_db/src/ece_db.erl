@@ -13,7 +13,8 @@
          all/1,
          find/2,
          create/2,
-         update/3]).
+         update/3,
+         terminate/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -47,6 +48,9 @@ create(PID, Doc) ->
 update(PID, ID, JsonDoc) ->
     gen_server:call(PID, {update, ID, JsonDoc}).
 
+terminate(PID) ->
+    gen_server:call(PID, terminate).
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -67,14 +71,16 @@ handle_call({find, ID}, _From, #state{db=DB}=State) ->
 handle_call({create, Doc}, _From, #state{db=DB}=State) ->
     {ok, Doc1} = couchbeam:save_doc(DB, Doc),
     {NewDoc} = couchbeam_doc:set_value(<<"id">>, couchbeam_doc:get_id(Doc1), Doc1),
-    {reply, mochijson2:encode(NewDoc), State};
+    {reply, mochijson2:encode({struct, NewDoc}), State};
 handle_call({update, ID, NewDoc}, _From, #state{db=DB}=State) ->
     IDBinary = list_to_binary(ID),
     {ok, Doc} = couchbeam:open_doc(DB, IDBinary),
     NewDoc2 = couchbeam_doc:set_value(<<"_id">>, IDBinary, {NewDoc}),
     NewDoc3 = couchbeam_doc:set_value(<<"_rev">>, couchbeam_doc:get_rev(Doc), NewDoc2),
     {ok, {Doc1}} = couchbeam:save_doc(DB, NewDoc3),
-    {reply, mochijson2:encode(Doc1), State}.
+    {reply, mochijson2:encode({struct, Doc1}), State};
+handle_call(terminate, _From, State) ->
+    {stop, normal, State}.
 
 %% @private
 handle_cast(_Msg, State) ->
@@ -106,6 +112,6 @@ get_docs(DB, Options) ->
 
     lists:map(fun({Row}) ->
                       {<<"value">>, {Value}} = lists:keyfind(<<"value">>, 1, Row),
-                      Value
+                      {struct, Value}
               end, Rows).
 

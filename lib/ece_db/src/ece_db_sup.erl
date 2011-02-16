@@ -30,7 +30,7 @@ start_child() ->
     supervisor:start_child(?SERVER, []).
 
 terminate_child(PID) ->
-    supervisor:terminate_child(?SERVER, PID).
+    ece_db:terminate(PID).
 
 %%%===================================================================
 %%% Supervisor callbacks
@@ -47,7 +47,7 @@ init([]) ->
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
-    Restart = transient,
+    Restart = temporary,
     Shutdown = 2000,
     Type = worker,
 
